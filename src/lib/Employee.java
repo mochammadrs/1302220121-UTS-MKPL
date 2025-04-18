@@ -127,6 +127,18 @@ public class Employee {
 		return joinDate;
 	}
 
+	public int getMonthlySalary() {
+		return monthlySalary;
+	}
+
+	public int getOtherMonthlyIncome() {
+		return otherMonthlyIncome;
+	}
+
+	public int getAnnualDeductible() {
+		return annualDeductible;
+	}
+
 	public Spouse getSpouse(){
 		return spouse;
 	}
@@ -147,10 +159,14 @@ public class Employee {
 		// Delegasikan perhitungan pajak ke TaxFunction
 		// Kirim 'true' ke parameter isMarried jika TIDAK ada ID pasangan (sesuai logika
 		// awal, dimana isMarried = spouseIdNumber.equals(""))
-		// Nama parameter di taxFunction tampaknya 'isMarried'
-		return TaxFunction.calculateTax(monthlySalary, otherMonthlyIncome, monthWorkingInYear, annualDeductible,
-				!hasSpouse, children.size()// menggunakan ukuran list child
-		);
+		// Nama parameter di taxFunction yaitu 'isMarried'
+		try { // Tambahkan try-catch jika TaxFunction melempar Exception
+			return TaxFunction.calculateTax(this, this.monthWorkingInYear);
+	   } catch (IllegalArgumentException e) {
+			// Tangani error input (misalnya, log error atau kembalikan nilai default)
+			System.err.println("Error calculating tax for employee " + this.employeeId + ": " + e.getMessage());
+			return 0; // Atau lempar exception lagi jika diperlukan
+	   }
 	}
 
 	/**

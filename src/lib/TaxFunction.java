@@ -28,34 +28,41 @@ public class TaxFunction {
 
 	// Fungsi untuk menghitung jumlah pajak penghasilan pegawai yang harus
 	// dibayarkan setahun.
-	public static int calculateTax(int monthlySalary, int otherMonthlyIncome, int numberOfMonthWorking, int deductible,
-			boolean isMarried, int numberOfChildren) {
+	// Refactoring: Terima objek Employee, kurangi parameter primitif
+	public static int calculateTax(Employee employee, int numberOfMonthWorking) {
 		// 1. Validasi Input
 		if (numberOfMonthWorking > MAX_MONTHS_PER_YEAR) {
-			System.err.println("More than " + MAX_MONTHS_PER_YEAR + " month working per year");
+			throw new IllegalArgumentException("Number of working months (" + numberOfMonthWorking + ") cannot exceed " + MAX_MONTHS_PER_YEAR);
 		}
 
-		// 2. Hitung PTKP (Penghasilan Tidak Kena Pajak)
+		// Memastikan employee tidak null (defensive programming)
+		if (employee == null) {
+			throw new IllegalArgumentException("Employee object cannot be null");
+		}
+
+		// Ambil data yang relevan daru objek Employee
+		int monthlySalary = employee.getMonthlySalary();
+		int otherMonthlyIncome = employee.getOtherMonthlyIncome();
+		int deductible = employee.getAnnualDeductible();
+		boolean isMarried = employee.getSpouse() != null;
+		int numberOfChildren = employee.getChildren().size();
+
+		// Menghitung PTKP
 		int nonTaxableIncome = calculateNonTaxableIncome(isMarried, numberOfChildren);
 
-		// 3. Hitung Penghasilan (Gunakan long untuk mencegah overflow)
+		// Hitung Penghasilan (Gunakan long untuk mencegah overflow)
 		long annualGrossIncome = (long) (monthlySalary + otherMonthlyIncome) * numberOfMonthWorking;
 
-		// 4. Hitung Penghasilan Kena Pajak
+		// Hitung Penghasilan Kena Pajak
 		long taxableIncome = annualGrossIncome - deductible - nonTaxableIncome;
 
-		// 5. Hitung Pajak (Hanya jika Penghasilan Kena Pajak > 0)
+		// Hitung Pajak (Hanya jika Penghasilan Kena Pajak > 0)
 		int tax = 0;
 		if (taxableIncome > 0) {
 			tax = (int) Math.round(taxableIncome * TAX_RATE);
 		}
 
-		// 6. Pastikan pajak tidak negatif
-		if (tax < 0) {
-			return 0;
-		} else {
-			return tax;
-		}
+		return tax;
 	}
 
 	/**
