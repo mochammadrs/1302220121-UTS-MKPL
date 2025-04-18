@@ -13,7 +13,7 @@ public class Employee {
 	private String idNumber;
 	private String address;
 
-	// Refactoring: Mengganti tanggal primitif dengan LocalDate
+	// Refactoring(PrimitiveObsession): Mengganti tanggal primitif dengan LocalDate
 	private LocalDate joinDate;
 	// private int yearJoined; // Dihapus
 	// private int monthJoined; // Dihapus
@@ -28,11 +28,15 @@ public class Employee {
 	private int otherMonthlyIncome;
 	private int annualDeductible;
 
-	private String spouseName;
-	private String spouseIdNumber;
+	// Refactoring(DataClumps): Menggunakan objek Spouse
+	private Spouse spouse; // Bisa null jika tidak punya pasangan
+	// private String spouseName; // Dihapus
+	// private String spouseIdNumber; // Dihapus
 
-	private List<String> childNames;
-	private List<String> childIdNumbers;
+	// Refactoring: Menggunakan List<child>
+	private List<Child> children; // Bisa kosong jika tidak punya anak
+	// private List<String> childNames; //Dihapus
+	// private List<String> childIdNumbers; // Dihapus
 
 	// Refactoring: Konstruktor sekarang menerima LocalDate
 	public Employee(String employeeId, String firstName, String lastName, String idNumber, String address,
@@ -47,8 +51,9 @@ public class Employee {
 		this.isForeigner = isForeigner;
 		this.gender = gender;
 
-		childNames = new LinkedList<String>();
-		childIdNumbers = new LinkedList<String>();
+		// Inisialisasi list children
+		children = new LinkedList<Child>();
+		// spouse dibiarkan null secara default
 	}
 
 	/**
@@ -93,21 +98,41 @@ public class Employee {
 		this.otherMonthlyIncome = income;
 	}
 
-	public void setSpouse(String spouseName, String spouseIdNumber) {
-		this.spouseName = spouseName;
-		// PERBAIKAN BUG: Tetapkan parameter spouseIdNumber, bukan idNumber milik
-		// karyawan
-		this.spouseIdNumber = spouseIdNumber;
-	}
+	// --- Method Tanggungan (Refactored) ---
 
-	public void addChild(String childName, String childIdNumber) {
-		childNames.add(childName);
-		childIdNumbers.add(childIdNumber);
-	}
+    /**
+     * Sets the spouse information for the employee.
+     * Creates a new Spouse object internally.
+     * @param spouseName Spouse's full name.
+     * @param spouseIdNumber Spouse's ID number.
+     */
+    public void setSpouse(String spouseName, String spouseIdNumber) {
+        // Buat objek Spouse dari parameter
+        this.spouse = new Spouse(spouseName, spouseIdNumber);
+    }
+
+	/**
+     * Adds a child to the employee's list of children.
+     * Creates a new Child object internally.
+     * @param childName Child's full name.
+     * @param childIdNumber Child's ID number.
+     */
+    public void addChild(String childName, String childIdNumber) {
+        // Buat objek Child dari parameter dan tambahkan ke list
+        children.add(new Child(childName, childIdNumber));
+    }
 
 	// Getter untuk field joinDate hasil refactoring
 	public LocalDate getJoinDate() {
 		return joinDate;
+	}
+
+	public Spouse getSpouse(){
+		return spouse;
+	}
+
+	public List<Child> getChildren() {
+		return children;
 	}
 
 	public int getAnnualIncomeTax() {
@@ -117,14 +142,15 @@ public class Employee {
 		calculateMonthWorkedInYear(currenDate);
 
 		// Peningkatan ketahanan: Periksa apakah spouseIdNumber null atau kosong
-		boolean hasSpouse = this.spouseIdNumber != null && !this.spouseIdNumber.isEmpty();
+		boolean hasSpouse = this.spouse != null && this.spouse.idNumber() != null && !this.spouse.idNumber().isEmpty();
 
 		// Delegasikan perhitungan pajak ke TaxFunction
 		// Kirim 'true' ke parameter isMarried jika TIDAK ada ID pasangan (sesuai logika
 		// awal, dimana isMarried = spouseIdNumber.equals(""))
 		// Nama parameter di taxFunction tampaknya 'isMarried'
 		return TaxFunction.calculateTax(monthlySalary, otherMonthlyIncome, monthWorkingInYear, annualDeductible,
-				!hasSpouse, childIdNumbers.size());
+				!hasSpouse, children.size()// menggunakan ukuran list child
+		);
 	}
 
 	/**
